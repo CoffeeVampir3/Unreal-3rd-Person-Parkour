@@ -64,7 +64,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateRotation(bool WantsToStrafe);
 	UFUNCTION(BlueprintCallable)
-	float CalculateMaxSpeed();
+	float CalculateMaxSpeed() const;
 	CoroState ParkourStateMachine();
 	void Move(const FInputActionValue& InputActionValue);
 	void Look(const FInputActionValue& InputActionValue);

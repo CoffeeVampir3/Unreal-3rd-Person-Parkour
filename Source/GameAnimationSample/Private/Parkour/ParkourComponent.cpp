@@ -22,8 +22,7 @@ UParkourComponent::UParkourComponent()
 //@Z TODO:: This doesn't match the implementation of GetDesiredGait in BP right now.
 void UParkourComponent::GetDesiredGait(const FVector StickMovementInput)
 {
-	const FVector2d Moo{StickMovementInput.X, StickMovementInput.Y};
-	if (Moo.Length() >= AnalogWalkRunThreshold)
+	if (StickMovementInput.Size2D() >= AnalogWalkRunThreshold)
 	{
 		CurrentDesiredGait = EMovementGait::Run;
 	}
@@ -57,7 +56,7 @@ float CalculateAbsoluteDirectionFast(const FVector& CurrentVelocity, const FRota
 	return FMath::Abs(FMath::RadiansToDegrees(AngleRad));
 }
 
-float UParkourComponent::CalculateMaxSpeed()
+float UParkourComponent::CalculateMaxSpeed() const
 {
 	const auto CurrentVelocity = MovementComponent->Velocity;
 	const auto Rot = ControlledCharacter->GetActorRotation();
@@ -134,8 +133,8 @@ bool ParkourTrace(
 	const FVector& TraceStart,
 	const FVector& TraceEnd,
 	const bool bDrawDebug,
-	FColor DebugColor,
-	float DebugDuration)
+	const FColor DebugColor,
+	const float DebugDuration)
 {
 	World->SweepSingleByChannel(OutHit,
 	                            TraceStart,
@@ -220,10 +219,7 @@ bool UParkourComponent::SelectParkourMontage(
 	                                PoseSearchResult, 69420);
 
 	OutAnim = const_cast<UAnimMontage*>(Cast<UAnimMontage>(PoseSearchResult.SelectedAnimation.Get()));
-	if (!OutAnim)
-	{
-		return false;
-	}
+	if (!OutAnim) return false;
 
 	OutTime = PoseSearchResult.SelectedTime;
 	OutPlayRate = PoseSearchResult.WantedPlayRate;
@@ -368,18 +364,12 @@ bool UParkourComponent::PerformTraversalCheck(FTraversableCheckResult& OutTraver
 	}
 
 	const auto HitTraversable = Cast<ATraversableActor>(HitResult.GetActor());
-	if (!HitTraversable)
-	{
-		return false;
-	}
+	if (!HitTraversable) return false;
 
 	OutTraversalCheck = HitTraversable->GetLedgeTransforms(HitResult.ImpactPoint, ActorLocation);
 	OutTraversalCheck.HitComponent = HitResult.Component.Get();
 
-	if (!OutTraversalCheck.bHasFrontLedge)
-	{
-		return false;
-	}
+	if (!OutTraversalCheck.bHasFrontLedge) return false;
 
 	// Front ledge room check
 	const auto FrontLedgeRoomCheck = OutTraversalCheck.FrontLedgeLocation +
@@ -440,16 +430,10 @@ bool UParkourComponent::TryTraversalAction(FTraversableCheckResult& OutTraversal
 	const auto CapsuleRadius = ControlledCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const auto CapsuleHalfHeight = ControlledCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	FTraversableCheckResult TraversalCheck;
-	if (!PerformTraversalCheck(TraversalCheck, CapsuleRadius, CapsuleHalfHeight, bDebugEnabled))
-	{
-		return false;
-	}
+	if (!PerformTraversalCheck(TraversalCheck, CapsuleRadius, CapsuleHalfHeight, bDebugEnabled)) return false;
 
 	EParkourActionType ActionType;
-	if (!DetermineParkourAction(TraversalCheck, bDebugEnabled, ActionType))
-	{
-		return false;
-	}
+	if (!DetermineParkourAction(TraversalCheck, bDebugEnabled, ActionType)) return false;
 
 	//This seems to actually just be a problem, idk why it exists.
 	//ControlledCharacter->GetCapsuleComponent()->IgnoreComponentWhenMoving(TraversalCheck.HitComponent, true);
@@ -480,8 +464,9 @@ bool UParkourComponent::TryTraversalAction(FTraversableCheckResult& OutTraversal
 
 	const auto AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
 	MovementComponent->SetMovementMode(MOVE_Flying);
-
+	
 	AnimInstance->Montage_Play(Anim, PlayRate, EMontagePlayReturnType::MontageLength, Time);
+	
 	bCurrentlyTraversing = true;
 	if (ActionType == EParkourActionType::Vault)
 	{
@@ -526,10 +511,10 @@ void UParkourComponent::OnAnimInstanceMontageEndOrAbortForVault(UAnimMontage* Mo
 
 void UParkourComponent::Jump(const FInputActionValue& InputActionValue)
 {
-	if (bCurrentlyTraversing || !MovementComponent->IsMovingOnGround())
-	{
-		return;
-	}
+	if (bCurrentlyTraversing) return;
+
+	//If you want the character to only be able to parkour while grounded.
+	//if(!MovementComponent->IsMovingOnGround()) return;
 	bWantsToJump = true;
 }
 
