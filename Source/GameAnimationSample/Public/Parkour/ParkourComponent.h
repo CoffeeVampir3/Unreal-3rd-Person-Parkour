@@ -16,17 +16,17 @@ class UInputAction;
 UENUM(BlueprintType)
 enum class EMovementGait : uint8
 {
-	Walk    UMETA(DisplayName = "Walk"),
-	Run     UMETA(DisplayName = "Run"),
-	Sprint  UMETA(DisplayName = "Sprint")
+	Walk UMETA(DisplayName = "Walk"),
+	Run UMETA(DisplayName = "Run"),
+	Sprint UMETA(DisplayName = "Sprint")
 };
 
 UENUM(BlueprintType)
 enum class EParkourActionType : uint8
 {
-	Hurdle    UMETA(DisplayName = "Hurdle"),
-	Vault     UMETA(DisplayName = "Vault"),
-	Mantle  UMETA(DisplayName = "Mantle"),
+	Hurdle UMETA(DisplayName = "Hurdle"),
+	Vault UMETA(DisplayName = "Vault"),
+	Mantle UMETA(DisplayName = "Mantle"),
 	NoValidAction UMETA(DisplayName = "None"),
 };
 
@@ -35,18 +35,19 @@ struct FMovementChooserParams
 {
 	GENERATED_BODY()
 	UPROPERTY(BlueprintReadWrite)
-	EMovementGait Gait {EMovementGait::Walk};
+	EMovementGait Gait{EMovementGait::Walk};
 	UPROPERTY(BlueprintReadWrite)
-    EParkourActionType ParkourAction {EParkourActionType::Hurdle};
+	EParkourActionType ParkourAction{EParkourActionType::Hurdle};
 	UPROPERTY(BlueprintReadWrite)
-	float ObstacleHeight {0.0};
+	float ObstacleHeight{0.0};
 	UPROPERTY(BlueprintReadWrite)
-	float ObstacleDepth {0.0};
+	float ObstacleDepth{0.0};
 	UPROPERTY(BlueprintReadWrite)
-	float Speed {0.0};
+	float Speed{0.0};
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetInteractionTransformDelegate, FTransform, NewTransform);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTraverseLookup, FMovementChooserParams, ChooserParams);
 
 class UCharacterMovementComponent;
@@ -73,11 +74,13 @@ public:
 	float GetForwardTraversalTraceDistance(const FVector& CurrentVelocity, const FRotator& CurrentRotation) const;
 	bool SelectParkourMontage(EParkourActionType ActionType, const FTraversableCheckResult& TraversalCheck,
 	                          UAnimMontage*& OutAnim, float& OutTime, float& OutPlayRate) const;
-	void UpdateMotionWarping(const UAnimMontage* Anim, const FTraversableCheckResult& TraversalCheck, const EParkourActionType ActionType) const;
+	void UpdateMotionWarping(const UAnimMontage* Anim, const FTraversableCheckResult& TraversalCheck,
+	                         const EParkourActionType ActionType) const;
 	static bool DetermineParkourAction(const FTraversableCheckResult& TraversalCheck,
 	                                   const bool bDebugEnabled,
 	                                   EParkourActionType& OutParkourActionType);
-	bool PerformTraversalCheck(FTraversableCheckResult& OutTraversalCheck, float CapsuleRadius, float CapsuleHalfHeight, bool bDebugEnabled) const;
+	bool PerformTraversalCheck(FTraversableCheckResult& OutTraversalCheck, float CapsuleRadius, float CapsuleHalfHeight,
+	                           bool bDebugEnabled) const;
 	bool TryTraversalAction(FTraversableCheckResult& OutTraversalData, EParkourActionType& OutParkourAction);
 
 	UFUNCTION()
@@ -95,6 +98,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Interaction")
 	FTraverseLookup OnTryTraverse;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void BeginDestroy() override;
@@ -109,33 +113,33 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FRuntimeFloatCurve StrafeMapSpeedCurve;
 	UPROPERTY(EditAnywhere, Category="Parkour")
-	FVector WalkSpeeds {200.0, 175.0, 150.0};
+	FVector WalkSpeeds{200.0, 175.0, 150.0};
 	UPROPERTY(EditAnywhere, Category="Parkour")
-	FVector RunSpeeds {500.0, 350.0, 300.0};
+	FVector RunSpeeds{500.0, 350.0, 300.0};
 	UPROPERTY(EditAnywhere, Category="Parkour")
-	FVector SprintSpeeds {700.0, 700.0, 700.0};
+	FVector SprintSpeeds{700.0, 700.0, 700.0};
 	UPROPERTY(EditAnywhere, Category="Parkour")
-	FVector CrouchSpeeds {200.0, 175.0, 150.0};
+	FVector CrouchSpeeds{200.0, 175.0, 150.0};
 
 	UPROPERTY(EditAnywhere, Category="Parkour")
-	FVector2f VelocityRange {0.0, 500.0};
+	FVector2f VelocityRange{0.0, 500.0};
 	UPROPERTY(EditAnywhere, Category="Parkour")
-	FVector2f TraceRange {75.0, 180.0};
+	FVector2f TraceRange{75.0, 180.0};
 
 	UPROPERTY(EditAnywhere, Category="Parkour")
-	float AnalogWalkRunThreshold {0.7};
+	float AnalogWalkRunThreshold{0.7};
 	UPROPERTY()
-	EMovementGait CurrentDesiredGait {EMovementGait::Walk};
+	EMovementGait CurrentDesiredGait{EMovementGait::Walk};
 
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UChooserTable> TraversalAnimChooser;
 
-	bool bWantsToStrafe {false};
-	bool bWantsToSprint {false};
-	bool bWantsToWalk {false};
-	bool bWantsToAim {false};
-	bool bWantsToJump {false};
-	bool bCurrentlyTraversing {false};
+	bool bWantsToStrafe{false};
+	bool bWantsToSprint{false};
+	bool bWantsToWalk{false};
+	bool bWantsToAim{false};
+	bool bWantsToJump{false};
+	bool bCurrentlyTraversing{false};
 
 	UPROPERTY(BlueprintReadOnly)
 	FTransform InteractionTransform;
@@ -147,7 +151,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> MoveWorldspaceAction;
-	
+
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> LookAction;
 
@@ -156,7 +160,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> WalkToggleAction;
-	
+
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> JumpAction;
 

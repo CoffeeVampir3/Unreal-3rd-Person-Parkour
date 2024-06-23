@@ -12,8 +12,9 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAMEANIMATIONSAMPLE_API UEnhancedPlayerInputComponent : public UEnhancedInputComponent
 {
 	GENERATED_BODY()
+
 public:
-	template<class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType>
+	template <class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType>
 	void BindAbilityActions(
 		const UGameInputConfiguration* InputConfigs,
 		UserClass* Object,
@@ -24,13 +25,14 @@ public:
 
 template <class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType>
 void UEnhancedPlayerInputComponent::BindAbilityActions(const UGameInputConfiguration* InputConfigs, UserClass* Object,
-	PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc)
+                                                       PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc,
+                                                       HeldFuncType HeldFunc)
 {
 	check(InputConfigs);
 
 	for (const auto [InputAction, InputTag] : InputConfigs->AbilityInputActions)
 	{
-		if(InputAction && InputTag.IsValid())
+		if (InputAction && InputTag.IsValid())
 		{
 			if (PressedFunc)
 			{

@@ -30,7 +30,7 @@ class GAMEANIMATIONSAMPLE_API UGameInputConfiguration : public UDataAsset
 public:
 	UFUNCTION(BlueprintCallable, Category = "Input Actions", meta=(ExpandBoolAsExecs="ReturnValue"))
 	bool TryGetInputActionForTag(const FGameplayTag& InputTag, UInputAction*& OutInputAction) const;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FGameInputAction> AbilityInputActions;
 };

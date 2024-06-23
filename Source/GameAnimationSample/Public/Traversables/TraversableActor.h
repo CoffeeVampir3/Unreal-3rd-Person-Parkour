@@ -11,20 +11,20 @@ USTRUCT(BlueprintType)
 struct FTraversableCheckResult
 {
 	GENERATED_BODY()
-	float ObstacleHeight {0.0f};
-	float ObstacleDepth {0.0f};
-	float BackLedgeHeight {0.0f};
+	float ObstacleHeight{0.0f};
+	float ObstacleDepth{0.0f};
+	float BackLedgeHeight{0.0f};
 
-	FVector FrontLedgeLocation {0.0f, 0.0f, 0.0f};
-	FVector FrontLedgeNormal {0.0f, 0.0f, 0.0f};
-	bool bHasFrontLedge {false};
+	FVector FrontLedgeLocation{0.0f, 0.0f, 0.0f};
+	FVector FrontLedgeNormal{0.0f, 0.0f, 0.0f};
+	bool bHasFrontLedge{false};
 
-	FVector BackLedgeLocation {0.0f, 0.0f, 0.0f};
-	FVector BackLedgeNormal {0.0f, 0.0f, 0.0f};
-	bool bHasBackLedge {false};
+	FVector BackLedgeLocation{0.0f, 0.0f, 0.0f};
+	FVector BackLedgeNormal{0.0f, 0.0f, 0.0f};
+	bool bHasBackLedge{false};
 
-	FVector BackFloorLocation {0.0f, 0.0f, 0.0f};
-	bool bHasBackFloor {false};
+	FVector BackFloorLocation{0.0f, 0.0f, 0.0f};
+	bool bHasBackFloor{false};
 
 	UPROPERTY()
 	TObjectPtr<UObject> HitObject;
@@ -41,7 +41,7 @@ public:
 	USplineComponent* FindClosestLedgeToLocation(const FVector& Location);
 	UFUNCTION(BlueprintCallable)
 	FTraversableCheckResult GetLedgeTransforms(FVector HitLocation, FVector ActorLocation);
-	
+
 	UPROPERTY(BlueprintReadWrite)
 	TArray<USplineComponent*> LedgeSplines;
 

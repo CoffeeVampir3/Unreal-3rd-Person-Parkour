@@ -17,11 +17,11 @@ void AEnhancedPlayerController::BeginPlay()
 
 	check(InputMappingContext);
 
-    //Input Setup -- For the local player.
-    if (auto InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
-    {
-    	InputSubsystem->AddMappingContext(InputMappingContext, 0);
-    }
+	//Input Setup -- For the local player.
+	if (auto InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		InputSubsystem->AddMappingContext(InputMappingContext, 0);
+	}
 }
 
 void AEnhancedPlayerController::SetupInputComponent()
@@ -29,12 +29,12 @@ void AEnhancedPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 
 	const auto EnhancedInputComponent = CastChecked<UEnhancedPlayerInputComponent>(InputComponent);
-    EnhancedInputComponent->BindAbilityActions(
-    	InputConfig,
-    	this,
-    	&ThisClass::AbilityInputTagPressed,
-    	&ThisClass::AbilityInputTagReleased,
-    	&ThisClass::AbilityInputTagHeld);
+	EnhancedInputComponent->BindAbilityActions(
+		InputConfig,
+		this,
+		&ThisClass::AbilityInputTagPressed,
+		&ThisClass::AbilityInputTagReleased,
+		&ThisClass::AbilityInputTagHeld);
 }
 
 void AEnhancedPlayerController::AbilityInputTagPressed(const FGameplayTag InputTag)

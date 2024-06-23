@@ -5,7 +5,6 @@
 #include "InputActionValue.h"
 #include "KismetTraceUtils.h"
 #include "MotionWarpingComponent.h"
-#include "ParticleHelper.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -23,11 +22,12 @@ UParkourComponent::UParkourComponent()
 //@Z TODO:: This doesn't match the implementation of GetDesiredGait in BP right now.
 void UParkourComponent::GetDesiredGait(const FVector StickMovementInput)
 {
-	const FVector2d Moo {StickMovementInput.X, StickMovementInput.Y};
-	if(Moo.Length() >= AnalogWalkRunThreshold)
+	const FVector2d Moo{StickMovementInput.X, StickMovementInput.Y};
+	if (Moo.Length() >= AnalogWalkRunThreshold)
 	{
 		CurrentDesiredGait = EMovementGait::Run;
-	} else
+	}
+	else
 	{
 		CurrentDesiredGait = EMovementGait::Walk;
 	}
@@ -42,7 +42,9 @@ void UParkourComponent::UpdateRotation(const bool WantsToStrafe)
 float CalculateAbsoluteDirectionFast(const FVector& CurrentVelocity, const FRotator& Rotation)
 {
 	if (CurrentVelocity.IsNearlyZero())
+	{
 		return 0.f;
+	}
 
 	const FVector NormalizedVel = CurrentVelocity.GetSafeNormal2D();
 	const FVector ForwardVector = Rotation.Vector();
@@ -60,11 +62,11 @@ float UParkourComponent::CalculateMaxSpeed()
 	const auto CurrentVelocity = MovementComponent->Velocity;
 	const auto Rot = ControlledCharacter->GetActorRotation();
 	const auto VelocityRelativeDirection = CalculateAbsoluteDirectionFast(CurrentVelocity, Rot);
-	
+
 	const auto DirectionScaledSpeed = StrafeMapSpeedCurve.ExternalCurve->GetFloatValue(VelocityRelativeDirection);
-	
+
 	FVector2d SpeedConstraints;
-	switch(CurrentDesiredGait)
+	switch (CurrentDesiredGait)
 	{
 	case EMovementGait::Run:
 		SpeedConstraints = FVector2d{RunSpeeds.X, RunSpeeds.Y};
@@ -72,7 +74,7 @@ float UParkourComponent::CalculateMaxSpeed()
 	case EMovementGait::Sprint:
 		SpeedConstraints = FVector2d{SprintSpeeds.X, SprintSpeeds.Y};
 		break;
-	default: SpeedConstraints = FVector2d{WalkSpeeds.X, WalkSpeeds.Y};;
+	default: SpeedConstraints = FVector2d{WalkSpeeds.X, WalkSpeeds.Y};
 	}
 
 	const FVector2d SpeedRange{0.0f, 1.0f};
@@ -85,7 +87,7 @@ void UParkourComponent::Move(const FInputActionValue& InputActionValue)
 	const FRotator Rotation = ControlledCharacter->GetControlRotation();
 	const FVector ForwardDirection = Rotation.Vector();
 	const FVector RightDirection = Rotation.RotateVector(FVector::RightVector);
-	
+
 	ControlledCharacter->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 	ControlledCharacter->AddMovementInput(RightDirection, InputAxisVector.X);
 }
@@ -116,7 +118,8 @@ void UParkourComponent::Sprint(const FInputActionValue& InputActionValue)
 	bWantsToWalk = false;
 }
 
-float UParkourComponent::GetForwardTraversalTraceDistance(const FVector& CurrentVelocity, const FRotator& CurrentRotation) const
+float UParkourComponent::GetForwardTraversalTraceDistance(const FVector& CurrentVelocity,
+                                                          const FRotator& CurrentRotation) const
 {
 	const float ForwardVelocity = CurrentRotation.UnrotateVector(CurrentVelocity).X;
 	return FMath::GetMappedRangeValueClamped(VelocityRange, TraceRange, ForwardVelocity);
@@ -135,14 +138,15 @@ bool ParkourTrace(
 	float DebugDuration)
 {
 	World->SweepSingleByChannel(OutHit,
-		TraceStart,
-		TraceEnd,
-		CapsuleRotation,
-		ECC_Visibility,
-		TraceCapsule,
-		CapsuleTraceParams);
+	                            TraceStart,
+	                            TraceEnd,
+	                            CapsuleRotation,
+	                            ECC_Visibility,
+	                            TraceCapsule,
+	                            CapsuleTraceParams);
 
-	if (bDrawDebug) {
+	if (bDrawDebug)
+	{
 		DrawDebugCapsuleTraceSingle(
 			World,
 			TraceStart,
@@ -151,26 +155,29 @@ bool ParkourTrace(
 			TraceCapsule.GetCapsuleHalfHeight(),
 			EDrawDebugTrace::ForDuration, OutHit.bBlockingHit, FHitResult{}, DebugColor, DebugColor, DebugDuration);
 	}
-	
+
 	return OutHit.bBlockingHit;
 }
 
 bool GetAnimationDistanceFromFrontLedgeToTargetOrDeleteWarp(
-                                                 const UAnimMontage* Anim,
-                                                 UMotionWarpingComponent* const MotionWarpingComponent,
-                                                 const FName& WarpingTerminalZoneName,
-                                                 const FName& DistanceFromLedgeName, float &OutAnimationDistance)
+	const UAnimMontage* Anim,
+	UMotionWarpingComponent* const MotionWarpingComponent,
+	const FName& WarpingTerminalZoneName,
+	const FName& DistanceFromLedgeName, float& OutAnimationDistance)
 {
 	TArray<FMotionWarpingWindowData> BackLedgeMotionWarpingWindows;
-	UMotionWarpingUtilities::GetMotionWarpingWindowsForWarpTargetFromAnimation(Anim, WarpingTerminalZoneName, BackLedgeMotionWarpingWindows);
-	if(!BackLedgeMotionWarpingWindows.IsEmpty())
+	UMotionWarpingUtilities::GetMotionWarpingWindowsForWarpTargetFromAnimation(
+		Anim, WarpingTerminalZoneName, BackLedgeMotionWarpingWindows);
+	if (!BackLedgeMotionWarpingWindows.IsEmpty())
 	{
 		float AnimationDistanceFromXtoY;
-		UAnimationWarpingLibrary::GetCurveValueFromAnimation(Anim, DistanceFromLedgeName, BackLedgeMotionWarpingWindows[0].EndTime, AnimationDistanceFromXtoY);
+		UAnimationWarpingLibrary::GetCurveValueFromAnimation(Anim, DistanceFromLedgeName,
+		                                                     BackLedgeMotionWarpingWindows[0].EndTime,
+		                                                     AnimationDistanceFromXtoY);
 		OutAnimationDistance = AnimationDistanceFromXtoY;
 		return true;
 	}
-	
+
 	MotionWarpingComponent->RemoveWarpTarget(WarpingTerminalZoneName);
 	return false;
 }
@@ -191,27 +198,32 @@ bool UParkourComponent::SelectParkourMontage(
 	};
 	OnTryTraverse.Broadcast(ChooserParams);
 
-	FChooserEvaluationContext EvalCTX {};
+	FChooserEvaluationContext EvalCTX{};
 	EvalCTX.AddStructParam(ChooserParams);
 
 	TArray<UObject*> Results;
-	UChooserTable::EvaluateChooser(EvalCTX, TraversalAnimChooser, FObjectChooserBase::FObjectChooserIteratorCallback::CreateLambda(
-		[&Results](UObject* InResult)
-		{
-			if(InResult == nullptr)
-			{
-				return FObjectChooserBase::EIteratorStatus::Stop;
-			}
-			Results.Add(InResult);
-			return FObjectChooserBase::EIteratorStatus::Continue;
-		}));
+	UChooserTable::EvaluateChooser(EvalCTX, TraversalAnimChooser,
+	                               FObjectChooserBase::FObjectChooserIteratorCallback::CreateLambda(
+		                               [&Results](UObject* InResult)
+		                               {
+			                               if (InResult == nullptr)
+			                               {
+				                               return FObjectChooserBase::EIteratorStatus::Stop;
+			                               }
+			                               Results.Add(InResult);
+			                               return FObjectChooserBase::EIteratorStatus::Continue;
+		                               }));
 
 	const auto AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
 	FPoseSearchBlueprintResult PoseSearchResult;
-	UPoseSearchLibrary::MotionMatch(AnimInstance, Results, FName(TEXT("PoseHistory")), FPoseSearchFutureProperties{}, PoseSearchResult, 69420);
+	UPoseSearchLibrary::MotionMatch(AnimInstance, Results, FName(TEXT("PoseHistory")), FPoseSearchFutureProperties{},
+	                                PoseSearchResult, 69420);
 
 	OutAnim = const_cast<UAnimMontage*>(Cast<UAnimMontage>(PoseSearchResult.SelectedAnimation.Get()));
-	if(!OutAnim) return false;
+	if (!OutAnim)
+	{
+		return false;
+	}
 
 	OutTime = PoseSearchResult.SelectedTime;
 	OutPlayRate = PoseSearchResult.WantedPlayRate;
@@ -221,251 +233,277 @@ bool UParkourComponent::SelectParkourMontage(
 
 void UParkourComponent::UpdateMotionWarping(
 	const UAnimMontage* Anim,
-    const FTraversableCheckResult& TraversalCheck,
-    const EParkourActionType ActionType) const
+	const FTraversableCheckResult& TraversalCheck,
+	const EParkourActionType ActionType) const
 {
-    static const auto FrontLedgeName = FName(TEXT("FrontLedge"));
-    static const auto BackLedgeName = FName(TEXT("BackLedge"));
-    static const auto FloorName = FName(TEXT("BackFloor"));
-    static const auto DistanceFromLedgeName = FName(TEXT("Distance_From_Ledge"));
+	static const auto FrontLedgeName = FName(TEXT("FrontLedge"));
+	static const auto BackLedgeName = FName(TEXT("BackLedge"));
+	static const auto FloorName = FName(TEXT("BackFloor"));
+	static const auto DistanceFromLedgeName = FName(TEXT("Distance_From_Ledge"));
 
-    const auto MotionWarpingComponent = ControlledCharacter->GetComponentByClass<UMotionWarpingComponent>();
+	const auto MotionWarpingComponent = ControlledCharacter->GetComponentByClass<UMotionWarpingComponent>();
 
-    MotionWarpingComponent->AddOrUpdateWarpTargetFromLocationAndRotation(
-        FrontLedgeName, TraversalCheck.FrontLedgeLocation,
-        (-TraversalCheck.FrontLedgeNormal).ToOrientationRotator());
+	MotionWarpingComponent->AddOrUpdateWarpTargetFromLocationAndRotation(
+		FrontLedgeName, TraversalCheck.FrontLedgeLocation,
+		(-TraversalCheck.FrontLedgeNormal).ToOrientationRotator());
 
-	float AnimationWarpDistanceFromFrontLedgeToBackLedge {0.0};
-    if (not(ActionType == EParkourActionType::Hurdle || ActionType == EParkourActionType::Mantle))
-    {
-        MotionWarpingComponent->RemoveWarpTarget(BackLedgeName);
-    } else
-    {
-    	const bool bBackLedgeHadWarpTargets = GetAnimationDistanceFromFrontLedgeToTargetOrDeleteWarp(
-			Anim,MotionWarpingComponent,BackLedgeName, DistanceFromLedgeName,
+	float AnimationWarpDistanceFromFrontLedgeToBackLedge{0.0};
+	if (not(ActionType == EParkourActionType::Hurdle || ActionType == EParkourActionType::Mantle))
+	{
+		MotionWarpingComponent->RemoveWarpTarget(BackLedgeName);
+	}
+	else
+	{
+		const bool bBackLedgeHadWarpTargets = GetAnimationDistanceFromFrontLedgeToTargetOrDeleteWarp(
+			Anim, MotionWarpingComponent, BackLedgeName, DistanceFromLedgeName,
 			AnimationWarpDistanceFromFrontLedgeToBackLedge);
-    	if (bBackLedgeHadWarpTargets)
-    	{
-    		MotionWarpingComponent->AddOrUpdateWarpTargetFromLocationAndRotation(
-				BackLedgeName, TraversalCheck.BackLedgeLocation,FRotator::ZeroRotator);
-    	}
-    }
+		if (bBackLedgeHadWarpTargets)
+		{
+			MotionWarpingComponent->AddOrUpdateWarpTargetFromLocationAndRotation(
+				BackLedgeName, TraversalCheck.BackLedgeLocation, FRotator::ZeroRotator);
+		}
+	}
 
-    if (ActionType == EParkourActionType::Hurdle)
-    {
-    	float AnimationWarpDistanceFromFrontLedgeToFloor {0.0};
-    	const bool bFloorHadWarpTargets = GetAnimationDistanceFromFrontLedgeToTargetOrDeleteWarp(
+	if (ActionType == EParkourActionType::Hurdle)
+	{
+		float AnimationWarpDistanceFromFrontLedgeToFloor{0.0};
+		const bool bFloorHadWarpTargets = GetAnimationDistanceFromFrontLedgeToTargetOrDeleteWarp(
 			Anim, MotionWarpingComponent, FloorName, DistanceFromLedgeName,
 			AnimationWarpDistanceFromFrontLedgeToFloor);
-        
-    	if (bFloorHadWarpTargets)
-    	{
-    		const auto AbsDistanceBackLedgeToFloor = FMath::Abs(
+
+		if (bFloorHadWarpTargets)
+		{
+			const auto AbsDistanceBackLedgeToFloor = FMath::Abs(
 				AnimationWarpDistanceFromFrontLedgeToBackLedge - AnimationWarpDistanceFromFrontLedgeToFloor);
 
-    		const auto BackLedgePlane = TraversalCheck.BackLedgeLocation + (TraversalCheck.BackLedgeNormal * AbsDistanceBackLedgeToFloor);
-    		const FVector MotionWarpingFloorTarget {
-    			BackLedgePlane.X, BackLedgePlane.Y,
+			const auto BackLedgePlane = TraversalCheck.BackLedgeLocation + (TraversalCheck.BackLedgeNormal *
+				AbsDistanceBackLedgeToFloor);
+			const FVector MotionWarpingFloorTarget{
+				BackLedgePlane.X, BackLedgePlane.Y,
 				TraversalCheck.BackFloorLocation.Z
 			};
-            
-    		MotionWarpingComponent->AddOrUpdateWarpTargetFromLocationAndRotation(
-				FloorName, MotionWarpingFloorTarget,FRotator::ZeroRotator);
-    	}
-    }
-    else
-    {
-    	MotionWarpingComponent->RemoveWarpTarget(FloorName);
-    }
+
+			MotionWarpingComponent->AddOrUpdateWarpTargetFromLocationAndRotation(
+				FloorName, MotionWarpingFloorTarget, FRotator::ZeroRotator);
+		}
+	}
+	else
+	{
+		MotionWarpingComponent->RemoveWarpTarget(FloorName);
+	}
 }
 
 bool UParkourComponent::DetermineParkourAction(
-    const FTraversableCheckResult& TraversalCheck,
-    const bool bDebugEnabled,
-    EParkourActionType& OutParkourActionType)
+	const FTraversableCheckResult& TraversalCheck,
+	const bool bDebugEnabled,
+	EParkourActionType& OutParkourActionType)
 {
-    const bool bObstacleHeightInRangeVaultHurdle = TraversalCheck.ObstacleHeight >= 50.0f && TraversalCheck.ObstacleHeight <= 125.0f;
-    const bool bObstacleSmallerThanPlayer = TraversalCheck.ObstacleDepth < 59.0f;
-    const bool bObstacleHeightInRangeMantle = TraversalCheck.ObstacleHeight >= 50.0f && TraversalCheck.ObstacleHeight <= 275.0f;
+	const bool bObstacleHeightInRangeVaultHurdle = TraversalCheck.ObstacleHeight >= 50.0f && TraversalCheck.
+		ObstacleHeight <= 125.0f;
+	const bool bObstacleSmallerThanPlayer = TraversalCheck.ObstacleDepth < 59.0f;
+	const bool bObstacleHeightInRangeMantle = TraversalCheck.ObstacleHeight >= 50.0f && TraversalCheck.ObstacleHeight <=
+		275.0f;
 
-    const bool bIsVault = TraversalCheck.bHasFrontLedge &&
-                 TraversalCheck.bHasBackLedge &&
-                 (!TraversalCheck.bHasBackFloor) &&
-                 bObstacleHeightInRangeVaultHurdle &&
-                 bObstacleSmallerThanPlayer;
+	const bool bIsVault = TraversalCheck.bHasFrontLedge &&
+		TraversalCheck.bHasBackLedge &&
+		(!TraversalCheck.bHasBackFloor) &&
+		bObstacleHeightInRangeVaultHurdle &&
+		bObstacleSmallerThanPlayer;
 
-    const bool bIsHurdle = TraversalCheck.bHasFrontLedge &&
-                  TraversalCheck.bHasBackLedge &&
-                  TraversalCheck.bHasBackFloor &&
-                  bObstacleHeightInRangeVaultHurdle &&
-                  bObstacleSmallerThanPlayer &&
-                  TraversalCheck.BackLedgeHeight > 50.0f;
+	const bool bIsHurdle = TraversalCheck.bHasFrontLedge &&
+		TraversalCheck.bHasBackLedge &&
+		TraversalCheck.bHasBackFloor &&
+		bObstacleHeightInRangeVaultHurdle &&
+		bObstacleSmallerThanPlayer &&
+		TraversalCheck.BackLedgeHeight > 50.0f;
 
-    const bool bIsMantle = TraversalCheck.bHasFrontLedge &&
-                  bObstacleHeightInRangeMantle &&
-                  TraversalCheck.ObstacleDepth > 59.0f;
+	const bool bIsMantle = TraversalCheck.bHasFrontLedge &&
+		bObstacleHeightInRangeMantle &&
+		TraversalCheck.ObstacleDepth > 59.0f;
 
-    if (bDebugEnabled)
-    {
-        UE_LOGFMT(LogTemp, Warning, "Front: {1} -- Back: {2} -- BackFloor: {3} -- In Range: {4} -- Smaller Obstacle: {5} -- Mantleable: {6}",
-            TraversalCheck.bHasFrontLedge,
-            TraversalCheck.bHasBackLedge,
-            TraversalCheck.bHasBackFloor,
-            bObstacleHeightInRangeVaultHurdle,
-            bObstacleSmallerThanPlayer,
-            bObstacleHeightInRangeMantle);
-    }
-	
-	OutParkourActionType = bIsVault ? EParkourActionType::Vault :
-						   bIsHurdle ? EParkourActionType::Hurdle :
-						   EParkourActionType::Mantle;
-	
+	if (bDebugEnabled)
+	{
+		UE_LOGFMT(LogTemp, Warning,
+		          "Front: {1} -- Back: {2} -- BackFloor: {3} -- In Range: {4} -- Smaller Obstacle: {5} -- Mantleable: {6}",
+		          TraversalCheck.bHasFrontLedge,
+		          TraversalCheck.bHasBackLedge,
+		          TraversalCheck.bHasBackFloor,
+		          bObstacleHeightInRangeVaultHurdle,
+		          bObstacleSmallerThanPlayer,
+		          bObstacleHeightInRangeMantle);
+	}
+
+	OutParkourActionType = bIsVault
+		                       ? EParkourActionType::Vault
+		                       : bIsHurdle
+		                       ? EParkourActionType::Hurdle
+		                       : EParkourActionType::Mantle;
+
 	return bIsMantle || bIsHurdle || bIsVault;
 }
 
-bool UParkourComponent::PerformTraversalCheck(FTraversableCheckResult& OutTraversalCheck, float CapsuleRadius, float CapsuleHalfHeight, bool bDebugEnabled) const
+bool UParkourComponent::PerformTraversalCheck(FTraversableCheckResult& OutTraversalCheck, float CapsuleRadius,
+                                              float CapsuleHalfHeight, bool bDebugEnabled) const
 {
-    const float ForwardTraceDistance = GetForwardTraversalTraceDistance(
-        ControlledCharacter->GetVelocity(),
-        ControlledCharacter->GetActorRotation());
+	const float ForwardTraceDistance = GetForwardTraversalTraceDistance(
+		ControlledCharacter->GetVelocity(),
+		ControlledCharacter->GetActorRotation());
 
-    const auto ActorLocation = ControlledCharacter->GetActorLocation();
-    const auto ActorForward = ControlledCharacter->GetActorForwardVector();
-    const auto CapsuleRotation = ControlledCharacter->GetCapsuleComponent()->GetComponentRotation();
+	const auto ActorLocation = ControlledCharacter->GetActorLocation();
+	const auto ActorForward = ControlledCharacter->GetActorForwardVector();
+	const auto CapsuleRotation = ControlledCharacter->GetCapsuleComponent()->GetComponentRotation();
 
-    FHitResult HitResult;
-    const auto InitialTraceEnd = ActorLocation + ActorForward * ForwardTraceDistance;
+	FHitResult HitResult;
+	const auto InitialTraceEnd = ActorLocation + ActorForward * ForwardTraceDistance;
 
-    static const FName CapsuleTraceSingleName(TEXT("CapsuleTraceSingleByProfile"));
-    const auto CapsuleTraceParams = FCollisionQueryParams{CapsuleTraceSingleName, false, ControlledCharacter};
-    const auto TraceCapsule = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
+	static const FName CapsuleTraceSingleName(TEXT("CapsuleTraceSingleByProfile"));
+	const auto CapsuleTraceParams = FCollisionQueryParams{CapsuleTraceSingleName, false, ControlledCharacter};
+	const auto TraceCapsule = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
 
-    // Initial trace
-    if (!ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
-                      ActorLocation, InitialTraceEnd, bDebugEnabled, FColor::Green, 5.0f))
-    {
-        return false;
-    }
+	// Initial trace
+	if (!ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
+	                  ActorLocation, InitialTraceEnd, bDebugEnabled, FColor::Green, 5.0f))
+	{
+		return false;
+	}
 
-    const auto HitTraversable = Cast<ATraversableActor>(HitResult.GetActor());
-    if (!HitTraversable) return false;
+	const auto HitTraversable = Cast<ATraversableActor>(HitResult.GetActor());
+	if (!HitTraversable)
+	{
+		return false;
+	}
 
-    OutTraversalCheck = HitTraversable->GetLedgeTransforms(HitResult.ImpactPoint, ActorLocation);
-    OutTraversalCheck.HitComponent = HitResult.Component.Get();
+	OutTraversalCheck = HitTraversable->GetLedgeTransforms(HitResult.ImpactPoint, ActorLocation);
+	OutTraversalCheck.HitComponent = HitResult.Component.Get();
 
-    if (!OutTraversalCheck.bHasFrontLedge) return false;
+	if (!OutTraversalCheck.bHasFrontLedge)
+	{
+		return false;
+	}
 
-    // Front ledge room check
-    const auto FrontLedgeRoomCheck = OutTraversalCheck.FrontLedgeLocation +
-        OutTraversalCheck.FrontLedgeNormal * (CapsuleRadius + 2.0f) +
-        FVector{0.0f, 0.0f, CapsuleHalfHeight + 2.0f};
+	// Front ledge room check
+	const auto FrontLedgeRoomCheck = OutTraversalCheck.FrontLedgeLocation +
+		OutTraversalCheck.FrontLedgeNormal * (CapsuleRadius + 2.0f) +
+		FVector{0.0f, 0.0f, CapsuleHalfHeight + 2.0f};
 
-    if (ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
-                     ActorLocation, FrontLedgeRoomCheck, bDebugEnabled, FColor::Red, 5.0f))
-    {
-        return false;
-    }
+	if (ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
+	                 ActorLocation, FrontLedgeRoomCheck, bDebugEnabled, FColor::Red, 5.0f))
+	{
+		return false;
+	}
 
-    OutTraversalCheck.ObstacleHeight = FMath::Abs((ActorLocation - CapsuleHalfHeight - OutTraversalCheck.FrontLedgeLocation).Z);
+	OutTraversalCheck.ObstacleHeight = FMath::Abs(
+		(ActorLocation - CapsuleHalfHeight - OutTraversalCheck.FrontLedgeLocation).Z);
 
-    // Back ledge room check
-    const auto BackLedgeRoomCheck = OutTraversalCheck.BackLedgeLocation +
-        OutTraversalCheck.BackLedgeNormal * (CapsuleRadius + 2.0f) +
-        FVector{0.0f, 0.0f, CapsuleHalfHeight + 2.0f};
+	// Back ledge room check
+	const auto BackLedgeRoomCheck = OutTraversalCheck.BackLedgeLocation +
+		OutTraversalCheck.BackLedgeNormal * (CapsuleRadius + 2.0f) +
+		FVector{0.0f, 0.0f, CapsuleHalfHeight + 2.0f};
 
-    ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
-                 FrontLedgeRoomCheck, BackLedgeRoomCheck, bDebugEnabled, FColor::Yellow, 5.0f);
+	ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
+	             FrontLedgeRoomCheck, BackLedgeRoomCheck, bDebugEnabled, FColor::Yellow, 5.0f);
 
-    if (HitResult.bBlockingHit)
-    {
-        OutTraversalCheck.ObstacleDepth = (HitResult.ImpactPoint - OutTraversalCheck.FrontLedgeLocation).Size2D();
-        OutTraversalCheck.bHasBackLedge = false;
-    }
-    else
-    {
-        OutTraversalCheck.ObstacleDepth = (OutTraversalCheck.FrontLedgeLocation - OutTraversalCheck.BackLedgeLocation).Size2D();
-        
-        const auto FloorCheck = (OutTraversalCheck.BackLedgeLocation +
-            OutTraversalCheck.BackLedgeNormal * (CapsuleRadius + 2.0f)) -
-            FVector{0.0f, 0.0f, (OutTraversalCheck.ObstacleHeight - CapsuleHalfHeight) + 50.0f};
+	if (HitResult.bBlockingHit)
+	{
+		OutTraversalCheck.ObstacleDepth = (HitResult.ImpactPoint - OutTraversalCheck.FrontLedgeLocation).Size2D();
+		OutTraversalCheck.bHasBackLedge = false;
+	}
+	else
+	{
+		OutTraversalCheck.ObstacleDepth = (OutTraversalCheck.FrontLedgeLocation - OutTraversalCheck.BackLedgeLocation).
+			Size2D();
 
-        ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
-                     BackLedgeRoomCheck, FloorCheck, bDebugEnabled, FColor::Purple, 5.0f);
+		const auto FloorCheck = (OutTraversalCheck.BackLedgeLocation +
+				OutTraversalCheck.BackLedgeNormal * (CapsuleRadius + 2.0f)) -
+			FVector{0.0f, 0.0f, (OutTraversalCheck.ObstacleHeight - CapsuleHalfHeight) + 50.0f};
 
-        if (HitResult.bBlockingHit)
-        {
-            OutTraversalCheck.BackFloorLocation = HitResult.ImpactPoint;
-            OutTraversalCheck.BackLedgeHeight = FMath::Abs((HitResult.ImpactPoint - OutTraversalCheck.BackLedgeLocation).Z);
-            OutTraversalCheck.bHasBackFloor = true;
-        }
-    }
+		ParkourTrace(HitResult, GetWorld(), CapsuleTraceParams, TraceCapsule, CapsuleRotation.Quaternion(),
+		             BackLedgeRoomCheck, FloorCheck, bDebugEnabled, FColor::Purple, 5.0f);
 
-    return true;
+		if (HitResult.bBlockingHit)
+		{
+			OutTraversalCheck.BackFloorLocation = HitResult.ImpactPoint;
+			OutTraversalCheck.BackLedgeHeight = FMath::Abs(
+				(HitResult.ImpactPoint - OutTraversalCheck.BackLedgeLocation).Z);
+			OutTraversalCheck.bHasBackFloor = true;
+		}
+	}
+
+	return true;
 }
 
-bool UParkourComponent::TryTraversalAction(FTraversableCheckResult& OutTraversalData, EParkourActionType& OutParkourAction)
+bool UParkourComponent::TryTraversalAction(FTraversableCheckResult& OutTraversalData,
+                                           EParkourActionType& OutParkourAction)
 {
-	constexpr bool bDebugEnabled {true};
+	constexpr bool bDebugEnabled{true};
 
 	const auto CapsuleRadius = ControlledCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const auto CapsuleHalfHeight = ControlledCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	FTraversableCheckResult TraversalCheck;
-	if(!PerformTraversalCheck(TraversalCheck, CapsuleRadius, CapsuleHalfHeight, bDebugEnabled)) return false;
+	if (!PerformTraversalCheck(TraversalCheck, CapsuleRadius, CapsuleHalfHeight, bDebugEnabled))
+	{
+		return false;
+	}
 
 	EParkourActionType ActionType;
-	if(!DetermineParkourAction(TraversalCheck, bDebugEnabled, ActionType)) return false;
+	if (!DetermineParkourAction(TraversalCheck, bDebugEnabled, ActionType))
+	{
+		return false;
+	}
 
 	//This seems to actually just be a problem, idk why it exists.
 	//ControlledCharacter->GetCapsuleComponent()->IgnoreComponentWhenMoving(TraversalCheck.HitComponent, true);
-	OnSetInteractionTransform.Broadcast(FTransform (TraversalCheck.FrontLedgeNormal.Rotation().Quaternion(),
-		TraversalCheck.FrontLedgeLocation));
+	OnSetInteractionTransform.Broadcast(FTransform(TraversalCheck.FrontLedgeNormal.Rotation().Quaternion(),
+	                                               TraversalCheck.FrontLedgeLocation));
 
-	UE_LOGFMT(LogTemp, Warning, "Action Type: {0}", 
-		[](const EParkourActionType Type) -> FString {
-			switch(Type) {
-				case EParkourActionType::Hurdle: return TEXT("Hurdle");
-				case EParkourActionType::Vault: return TEXT("Vault");
-				case EParkourActionType::Mantle: return TEXT("Mantle");
-				default: return TEXT("Unknown");
-			}
-		}(ActionType)
+	UE_LOGFMT(LogTemp, Warning, "Action Type: {0}",
+	          [](const EParkourActionType Type) -> FString {
+	          switch(Type) {
+	          case EParkourActionType::Hurdle: return TEXT("Hurdle");
+	          case EParkourActionType::Vault: return TEXT("Vault");
+	          case EParkourActionType::Mantle: return TEXT("Mantle");
+	          default: return TEXT("Unknown");
+	          }
+	          }(ActionType)
 	);
 
 	UAnimMontage* Anim;
-    float Time;
-    float PlayRate;
-    if(!SelectParkourMontage(ActionType, TraversalCheck, Anim, Time, PlayRate))
-    {
-    	UE_LOG(LogTemp, Warning, TEXT("Failed to find montage."))
-    	return false;
-    };
+	float Time;
+	float PlayRate;
+	if (!SelectParkourMontage(ActionType, TraversalCheck, Anim, Time, PlayRate))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find montage."))
+		return false;
+	}
 
-    UpdateMotionWarping(Anim, TraversalCheck, ActionType);
+	UpdateMotionWarping(Anim, TraversalCheck, ActionType);
 
-    const auto AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
-    MovementComponent->SetMovementMode(MOVE_Flying);
+	const auto AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
+	MovementComponent->SetMovementMode(MOVE_Flying);
 
-    AnimInstance->Montage_Play(Anim, PlayRate, EMontagePlayReturnType::MontageLength, Time);
-    bCurrentlyTraversing = true;
-    if(ActionType == EParkourActionType::Vault)
-    {
-    	AnimInstance->OnMontageEnded.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbortForVault);
-    } else if (ActionType == EParkourActionType::Hurdle)
-    {
-    	AnimInstance->OnMontageEnded.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbort);
-    } else
-    {
-    	AnimInstance->OnMontageEnded.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbort);
+	AnimInstance->Montage_Play(Anim, PlayRate, EMontagePlayReturnType::MontageLength, Time);
+	bCurrentlyTraversing = true;
+	if (ActionType == EParkourActionType::Vault)
+	{
+		AnimInstance->OnMontageEnded.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbortForVault);
+	}
+	else if (ActionType == EParkourActionType::Hurdle)
+	{
+		AnimInstance->OnMontageEnded.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbort);
+	}
+	else
+	{
+		AnimInstance->OnMontageEnded.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbort);
 
-    	//The blend time for climbing is kind of long, this feels better.
-    	if(TraversalCheck.ObstacleHeight > 150.0)
-    	{
-    		AnimInstance->OnMontageBlendingOut.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbort);
-    	}
-    }
-	
+		//The blend time for climbing is kind of long, this feels better.
+		if (TraversalCheck.ObstacleHeight > 150.0)
+		{
+			AnimInstance->OnMontageBlendingOut.AddDynamic(this, &UParkourComponent::OnAnimInstanceMontageEndOrAbort);
+		}
+	}
+
 	OutTraversalData = TraversalCheck;
-    OutParkourAction = ActionType;
+	OutParkourAction = ActionType;
 	return true;
 }
 
@@ -488,7 +526,10 @@ void UParkourComponent::OnAnimInstanceMontageEndOrAbortForVault(UAnimMontage* Mo
 
 void UParkourComponent::Jump(const FInputActionValue& InputActionValue)
 {
-	if(bCurrentlyTraversing || !MovementComponent->IsMovingOnGround()) return;
+	if (bCurrentlyTraversing || !MovementComponent->IsMovingOnGround())
+	{
+		return;
+	}
 	bWantsToJump = true;
 }
 
@@ -505,26 +546,22 @@ void UParkourComponent::Aim(const FInputActionValue& InputActionValue)
 
 CoroState UParkourComponent::ParkourStateMachine()
 {
-	while(true)
+	while (true)
 	{
 		co_await std::suspend_always{};
 		const auto MaxSpeed = CalculateMaxSpeed();
 		MovementComponent->MaxWalkSpeed = MaxSpeed;
 		UpdateRotation(!bWantsToStrafe);
 
-		if(bWantsToJump)
+		if (bWantsToJump)
 		{
 			FTraversableCheckResult TraversalCheck;
 			EParkourActionType ActionType;
 			bWantsToJump = false;
-			if(!TryTraversalAction(TraversalCheck, ActionType))
+			if (!TryTraversalAction(TraversalCheck, ActionType))
 			{
 				ControlledCharacter->Jump();
-				continue;
-			} else
-			{
-				//...
-			}
+			} //...
 		}
 	}
 }
@@ -563,4 +600,3 @@ void UParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	StateMachine.Run();
 }
-

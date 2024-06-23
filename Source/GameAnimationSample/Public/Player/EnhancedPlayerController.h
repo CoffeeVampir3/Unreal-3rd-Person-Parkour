@@ -28,7 +28,7 @@ protected:
 	void AbilityInputTagHeld(FGameplayTag InputTag);
 
 	UPROPERTY(EditAnywhere, Category="Input")
-    TObjectPtr<UInputMappingContext> InputMappingContext;
+	TObjectPtr<UInputMappingContext> InputMappingContext;
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UGameInputConfiguration> InputConfig;

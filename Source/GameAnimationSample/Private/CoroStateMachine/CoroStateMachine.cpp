@@ -2,37 +2,37 @@
 
 void CoroStateMachine::Destroy()
 {
-    Reset();
-    Sleeping = true;
+	Reset();
+	Sleeping = true;
 }
 
 void CoroStateMachine::ChangeToState(const CoroState& NewState)
 {
-	if(CurrentState && OnExitFunc)
-    {
-    	OnExitFunc();
-    }
-    Reset();
-    CurrentTask = NewState.Handle;
-    CurrentState = NewState;
+	if (CurrentState && OnExitFunc)
+	{
+		OnExitFunc();
+	}
+	Reset();
+	CurrentTask = NewState.Handle;
+	CurrentState = NewState;
 }
 
 void CoroStateMachine::Reset()
 {
 	FreeEntireCoroutineStack();
-    CurrentStateTransitions.clear();
-    CurrentStatelessTasks.clear();
-    NextState = nullptr;
-    OnExitFunc = nullptr;
-    CurrentTask = nullptr;
-    Sleeping = false;
+	CurrentStateTransitions.clear();
+	CurrentStatelessTasks.clear();
+	NextState = nullptr;
+	OnExitFunc = nullptr;
+	CurrentTask = nullptr;
+	Sleeping = false;
 }
 
 void CoroStateMachine::FreeEntireCoroutineStack()
 {
-	while(!CoroutineStack.empty())
+	while (!CoroutineStack.empty())
 	{
-		if(auto Top = CoroutineStack.top())
+		if (auto Top = CoroutineStack.top())
 		{
 			Top.destroy();
 		}
@@ -42,31 +42,42 @@ void CoroStateMachine::FreeEntireCoroutineStack()
 
 void CoroStateMachine::AwaitPush(const coroutine_handle<> NewHandle)
 {
-	if(CurrentTask)
-	    CoroutineStack.push(CurrentTask);
+	if (CurrentTask)
+	{
+		CoroutineStack.push(CurrentTask);
+	}
 	CurrentTask = NewHandle;
 }
 
 std::function<CoroState()> CoroStateMachine::CheckNextTransition()
 {
-	if(CurrentStateTransitions.empty()) return nullptr;
-	
-	auto &[TransFunc, StateFunc] = CurrentStateTransitions.front();
-	if(TransFunc()) return StateFunc;
+	if (CurrentStateTransitions.empty())
+	{
+		return nullptr;
+	}
+
+	auto& [TransFunc, StateFunc] = CurrentStateTransitions.front();
+	if (TransFunc())
+	{
+		return StateFunc;
+	}
 
 	//Rotate our deque so the transition we just evaluated is now the back.
 	CurrentStateTransitions.push_back(CurrentStateTransitions.front());
 	CurrentStateTransitions.pop_front();
-	
+
 	return nullptr;
 }
 
 bool CoroStateMachine::Run()
 {
-	if(Sleeping) return true;
-	if(!CurrentState)
+	if (Sleeping)
 	{
-		if(NextState)
+		return true;
+	}
+	if (!CurrentState)
+	{
+		if (NextState)
 		{
 			//We have a valid next state, so we move to that.
 			ChangeToState(std::move(NextState()));
@@ -75,39 +86,40 @@ bool CoroStateMachine::Run()
 		return false;
 	}
 
-	for(const auto& StatelessTask : CurrentStatelessTasks)
+	for (const auto& StatelessTask : CurrentStatelessTasks)
 	{
 		StatelessTask();
 	}
 
 	//Check trasition, if we should transition run any exit code and switch states.
-	if(const auto CheckResult = CheckNextTransition())
+	if (const auto CheckResult = CheckNextTransition())
 	{
 		ChangeToState(CheckResult());
 	}
 
 	//If we have no valid task or the current one is done, pop the stack until we have a valid task or return false.
-	while(!CurrentTask || CurrentTask.done()) {
-		if(CoroutineStack.empty())
+	while (!CurrentTask || CurrentTask.done())
+	{
+		if (CoroutineStack.empty())
 		{
-			if(NextState)
+			if (NextState)
 			{
 				//We have a valid next state, so we move to that.
 				ChangeToState(std::move(NextState()));
 				return true;
 			}
-			
+
 			//CurrentState.ExitAndDestroy();
 			return false;
 		}
-		if(CurrentTask)
+		if (CurrentTask)
 		{
 			CurrentTask.destroy();
 		}
 		CurrentTask = CoroutineStack.top();
 		CoroutineStack.pop();
 	}
-	
+
 	CurrentTask.resume();
 	return true;
 }
@@ -140,5 +152,5 @@ TaskAwaiter CoroStateMachine::WaitForTask(CoroTask&& TaskToAwait)
 CoroStateMachine& CoroStateMachine::AddStatelessTask(const std::function<void()>& Task)
 {
 	CurrentStatelessTasks.push_back(std::move(Task));
-    return *this;
+	return *this;
 }
