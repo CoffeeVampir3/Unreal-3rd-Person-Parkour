@@ -22,7 +22,7 @@ UParkourComponent::UParkourComponent()
 //@Z TODO:: This doesn't match the implementation of GetDesiredGait in BP right now.
 void UParkourComponent::GetDesiredGait(const FVector StickMovementInput)
 {
-	if (StickMovementInput.GetSafeNormal2D() >= AnalogWalkRunThreshold)
+	if (StickMovementInput.GetSafeNormal2D().Length() >= AnalogWalkRunThreshold)
 	{
 		CurrentDesiredGait = EMovementGait::Run;
 	}
